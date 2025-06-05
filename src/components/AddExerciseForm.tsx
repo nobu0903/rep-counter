@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
-import type { WorkoutState } from '../store/useWorkoutStore'
+// import type { WorkoutState } from '../store/useWorkoutStore'
 
 const AddExerciseForm = () => {
   const [exerciseName, setExerciseName] = useState('')
