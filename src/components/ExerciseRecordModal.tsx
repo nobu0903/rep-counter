@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useWorkoutStore } from '../store/useWorkoutStore';
 
 interface SetRecord {
   weight: string;
@@ -12,12 +13,31 @@ interface ExerciseRecordModalProps {
   sectionName: string;
 }
 
-const ExerciseRecordModal: React.FC<ExerciseRecordModalProps> = ({ open, onClose, exerciseName }) => {
+const getToday = () => {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+};
+
+const ExerciseRecordModal: React.FC<ExerciseRecordModalProps> = ({ open, onClose, exerciseName, sectionName }) => {
+  const addRecord = useWorkoutStore((state) => state.addRecord);
   const [sets, setSets] = useState<SetRecord[]>([
     { weight: '', reps: '' },
     { weight: '', reps: '' },
     { weight: '', reps: '' },
   ]);
+  const [date, setDate] = useState(getToday());
+
+  // モーダルが開かれたときに入力欄をリセット
+  useEffect(() => {
+    if (open) {
+      setSets([
+        { weight: '', reps: '' },
+        { weight: '', reps: '' },
+        { weight: '', reps: '' },
+      ]);
+      setDate(getToday());
+    }
+  }, [open]);
 
   const handleSetChange = (idx: number, field: 'weight' | 'reps', value: string) => {
     setSets((prev) => prev.map((set, i) => i === idx ? { ...set, [field]: value } : set));
@@ -31,16 +51,58 @@ const ExerciseRecordModal: React.FC<ExerciseRecordModalProps> = ({ open, onClose
     setSets((prev) => prev.length > 1 ? prev.filter((_, i) => i !== idx) : prev);
   };
 
+  const handleAddRecords = () => {
+    sets.forEach((set) => {
+      if (set.weight && set.reps) {
+        addRecord(sectionName, exerciseName, {
+          date,
+          weight: Number(set.weight),
+          reps: Number(set.reps),
+        });
+      }
+    });
+    onClose();
+  };
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+    <div
+      className="fixed inset-0 z-50"
+      style={{
+        background: 'rgba(0,0,0,0.6)',
+      }}
+    >
       <div
-        className="bg-black text-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative flex flex-col items-center"
-        style={{ backgroundColor: '#000', color: '#fff' }}
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: '#000',
+          color: '#fff',
+          borderRadius: '1rem',
+          boxShadow: '0 4px 32px rgba(0,0,0,0.5)',
+          padding: '2rem',
+          maxWidth: '400px',
+          minWidth: '300px',
+          width: '90vw',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          zIndex: 9999
+        }}
       >
         <button onClick={onClose} className="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl">×</button>
         <h2 className="text-2xl font-bold mb-6 text-center">{exerciseName}</h2>
+        <div className="mb-4 w-full flex items-center gap-2">
+          <label className="text-sm text-gray-300">日付:</label>
+          <input
+            type="date"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+            className="border border-gray-600 bg-black text-white rounded px-2 py-1 focus:outline-none focus:border-blue-400"
+          />
+        </div>
         <div className="space-y-4 w-full">
           {sets.map((set, idx) => (
             <div key={idx} className="flex items-center gap-2 w-full">
@@ -69,7 +131,7 @@ const ExerciseRecordModal: React.FC<ExerciseRecordModalProps> = ({ open, onClose
         </div>
         <div className="flex justify-between mt-8 w-full">
           <button onClick={handleAddSet} className="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 text-sm">＋セット追加</button>
-          <button onClick={onClose} className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 text-sm">記録する（仮）</button>
+          <button onClick={handleAddRecords} className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 text-sm">記録追加</button>
         </div>
       </div>
     </div>
