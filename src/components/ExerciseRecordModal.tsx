@@ -12,7 +12,7 @@ interface ExerciseRecordModalProps {
   sectionName: string;
 }
 
-const ExerciseRecordModal: React.FC<ExerciseRecordModalProps> = ({ open, onClose, exerciseName, sectionName }) => {
+const ExerciseRecordModal: React.FC<ExerciseRecordModalProps> = ({ open, onClose, exerciseName }) => {
   const [sets, setSets] = useState<SetRecord[]>([
     { weight: '', reps: '' },
     { weight: '', reps: '' },
